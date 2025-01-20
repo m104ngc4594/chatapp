@@ -31,14 +31,19 @@ export default {
     };
   },
   methods: {
-    login() {
-      const loginData = {
-        email: this.email,
-        password: this.password,
-      };
+    async login() {
+      try {
+        const user = await this.$store.dispatch('signin', {
+          email: this.email,
+          password: this.password,
+        });
 
-      console.log('Login Data:', loginData);
-      this.$router.push('/chat');
+        console.log('Signin successful, user:', user);
+        this.$router.push('/'); // Redirect to chat after successful signup
+      } catch (error) {
+        console.error('Signin failed:', error);
+        // Handle signin failure, show error message to user, etc.
+      }
     },
   },
 };
