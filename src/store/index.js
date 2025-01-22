@@ -146,26 +146,14 @@ export default createStore({
               },
             }
           );
-          /* We should conver sender_id to user object
-          [
-            {
-              "id": 1,
-              "chat_id": 1,
-              "sender_id": 1,
-              "content": "Hello, World!",
-              "files": [],
-              "created_at": "2024-08-18T04:07:54.087786Z"
-            }
-          ]
-          */
           let messages = response.data;
-          messages = messages.map((message) => {
-            const user = state.users[message.senderId];
-            return {
-              ...message,
-              sender: user,
-            };
-          });
+          // messages = messages.map((message) => {
+          //   const user = state.users[message.senderId];
+          //   return {
+          //     ...message,
+          //     sender: user,
+          //   };
+          // } );
           commit("setMessages", { channelId, messages });
         } catch (error) {
           console.error(
@@ -175,11 +163,29 @@ export default createStore({
         }
       }
     },
+    async sendMessage({ state, commit }, payload) {
+      try {
+        const response = await axios.post(
+          `${getUrlBase()}/chats/${payload.chatId}`,
+          payload,
+          {
+            headers: {
+              Authorization: `Bearer ${state.token}`,
+            },
+          }
+        );
+        console.log("Message sent:", response.data);
+        commit("addMessage", {
+          channelId: payload.chatId,
+          message: response.data,
+        });
+      } catch (error) {
+        console.error("Failed to send message:", error);
+        throw error;
+      }
+    },
     addMessage({ commit }, { channelId, message }) {
       commit("addMessage", { channelId, message });
-
-      // Update the messages in local storage
-      localStorage.setItem("messages", JSON.stringify(this.state.messages));
     },
     loadUserState({ commit }) {
       commit("loadUserState");
@@ -191,6 +197,9 @@ export default createStore({
     },
     getUser(state) {
       return state.user;
+    },
+    getUserById: (state) => (id) => {
+      return state.users[id];
     },
     getWorkspace(state) {
       return state.workspace;
